@@ -1,20 +1,14 @@
 import telebot
 from telebot import types
 
-# إعدادات البوت الأساسية
-API_TOKEN = 'هنا_ضع_توكن_بوتك_الذي_أخذته_من_بوت_فاذر'
-ADMIN_ID = 7729719430
-CHANNEL_ID = "@almasrestore"
-CHANNEL_LINK = "https://t.me/almasrestore"
+# --- الإعدادات الثابتة (بلاك تفعيل النظام) ---
+API_TOKEN = '7748443916:AAH5Z_p0qM0Xw_D0m-l_o3V6q-YI2Lp78i8' # توكن بوتك
+ADMIN_ID = 7729719430 # آيدي محمد المصري
+CHANNEL_ID = "@almasrestore" # معرف القناة
+CHANNEL_LINK = "https://t.me/almasrestore" # رابط القناة
+OWNER_USER = "@mohamedalmasre99" # يوزر التواصل الجديد
 
 bot = telebot.TeleBot(API_TOKEN)
-
-# قاعدة بيانات وهمية (يتم تحديثها من لوحة التحكم)
-prices = {
-    "pubg": 5000,
-    "insta": 2000,
-    "freefire": 4500
-}
 
 # دالة التحقق من الاشتراك الإجباري
 def is_subscribed(user_id):
@@ -22,46 +16,47 @@ def is_subscribed(user_id):
         status = bot.get_chat_member(CHANNEL_ID, user_id).status
         return status in ['member', 'administrator', 'creator']
     except:
-        return False
+        return True # إذا في مشكلة بالصلاحيات يكمل عشان ما يعلق البوت
 
-# لوحة التحكم (للمالك فقط)
-@bot.message_handler(commands=['admin'])
-def admin_panel(message):
-    if message.from_user.id == ADMIN_ID:
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        btn1 = types.InlineKeyboardButton("تعديل أسعار ببجي", callback_data="edit_pubg")
-        btn2 = types.InlineKeyboardButton("تعديل أسعار انستا", callback_data="edit_insta")
-        btn3 = types.InlineKeyboardButton("إحصائيات البوت", callback_data="stats")
-        markup.add(btn1, btn2, btn3)
-        bot.send_message(message.chat.id, "أهلاً بك يا محمد في لوحة تحكم Turbo Store 🚀", reply_markup=markup)
-
-# القائمة الرئيسية
+# أمر البدء
 @bot.message_handler(commands=['start'])
 def start(message):
     if not is_subscribed(message.from_user.id):
         markup = types.InlineKeyboardMarkup()
-        btn = types.InlineKeyboardButton("اشترك هنا أولاً ✅", url=CHANNEL_LINK)
+        btn = types.InlineKeyboardButton("اشترك في قناة المتجر أولاً ✅", url=CHANNEL_LINK)
         markup.add(btn)
-        bot.send_message(message.chat.id, "عذراً! يجب عليك الاشتراك في قناة المتجر لتتمكن من استخدام البوت.", reply_markup=markup)
+        bot.send_message(message.chat.id, f"أهلاً بك في Turbo Store ⚡\n\nعذراً يا بطل، يجب عليك الاشتراك في القناة لتتمكن من استخدام خدماتنا.", reply_markup=markup)
         return
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("🛒 خدمات الشحن", "👤 حسابي", "📞 الدعم الفني")
-    bot.send_message(message.chat.id, "أهلاً بك في متجر تيربو - Turbo Store ⚡\nاختر من القائمة أدناه:", reply_markup=markup)
+    markup.add("🛒 خدمات الشحن والرشق", "👤 حسابي")
+    markup.add("📞 الدعم الفني (محمد المصري)")
+    bot.send_message(message.chat.id, f"أهلاً بك يا {message.from_user.first_name} في متجر تيربو 🚀\nكل ما تحتاجه من خدمات رقمية في مكان واحد.", reply_markup=markup)
 
-# التعامل مع الخدمات
-@bot.message_handler(func=lambda message: message.text == "🛒 خدمات الشحن")
-def services(message):
-    text = f"قائمة الخدمات الحالية:\n\n"
-    text += f"🔹 شدات ببجي (60 UC): {prices['pubg']} نقطة\n"
-    text += f"🔹 متابعين انستا (1000): {prices['insta']} نقطة\n"
-    text += f"🔹 جواهر فري فاير: {prices['freefire']} نقطة\n\n"
-    text += "لطلب أي خدمة، تواصل مع الإدارة مباشرة."
-    bot.send_message(message.chat.id, text)
+# لوحة التحكم للمالك فقط
+@bot.message_handler(commands=['admin'])
+def admin(message):
+    if message.from_user.id == ADMIN_ID:
+        bot.send_message(message.chat.id, "أهلاً بك يا محمد في لوحة تحكم الإدارة. قريباً سنضيف أزرار التحكم بالأسعار من هنا.")
+    else:
+        bot.send_message(message.chat.id, "هذا الأمر مخصص للمالك فقط.")
 
-@bot.message_handler(func=lambda message: message.text == "📞 الدعم الفني")
+# الدعم الفني
+@bot.message_handler(func=lambda message: message.text == "📞 الدعم الفني (محمد المصري)")
 def support(message):
-    bot.send_message(message.chat.id, "للتواصل مع المالك محمد المصري: @mohamedalmasre99")
+    bot.send_message(message.chat.id, f"للتواصل مع المالك محمد المصري مباشرة:\n{OWNER_USER}")
 
-print("البوت يعمل الآن بنجاح...")
+# خدمات الشحن
+@bot.message_handler(func=lambda message: message.text == "🛒 خدمات الشحن والرشق")
+def services(message):
+    text = (
+        "⚡ **خدمات Turbo Store المتاحة:**\n\n"
+        "🎮 **ببجي موبايل (UC):**\n- 60 شدة: 5000 نقطة\n\n"
+        "📸 **إنستقرام:**\n- 1000 متابع: 2500 نقطة\n\n"
+        "💬 **أرقام وهمية:**\n- تفعيل تليجرام/واتساب (مجاناً للمشتركين الجدد)\n\n"
+        "لطلب أي خدمة، تواصل مع المالك مباشرة عبر زر الدعم الفني."
+    )
+    bot.send_message(message.chat.id, text, parse_mode="Markdown")
+
+print("Turbo Store is Online...")
 bot.polling()
